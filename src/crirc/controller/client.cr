@@ -60,8 +60,16 @@ class Crirc::Controller::Client
   # end
   # ```
   def reply(msg, data)
-    target = msg.argument_list.first
-    target_object = (target[0] == '#' ? Crirc::Protocol::Chan : Crirc::Protocol::User).new(target).as(Crirc::Protocol::Target)
-    self.privmsg(target_object, data)
+    case msg.command
+    when "PRIVMSG"
+      target = msg.argument_list.first
+      target_object = (target[0] == '#' ? Crirc::Protocol::Chan : Crirc::Protocol::User).new(target).as(Crirc::Protocol::Target)
+      self.privmsg(target_object, data)
+    when "WHISPER"
+      target = msg.source.split('!')[0]
+      self.puts("PRIVMSG #jtv :/w #{target} #{data}")
+    else
+      # Do nothing
+    end
   end
 end
