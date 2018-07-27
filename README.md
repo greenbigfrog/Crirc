@@ -5,6 +5,18 @@ A crystal library to create irc client/bot/server.
 # This is an attempt at making Crirc fully Twitch compatible
 Be aware that this is WIP and in no excempt is finished or feature complete.
 
+=======
+## TODO
+[] # Request Various Twitch specific capabilities.
+   # Not checking for acknowledgement on purpose.
+
+   # List of capabilities:
+   capabilities = Set{"membership", "tags", "commands"}
+        
+   capabilities.each do |capability|
+     bot.puts("CAP REQ :twitch.tv/#{capability}")
+   end
+
 ## Installation
 
 [![travis](https://travis-ci.org/Meoowww/Crirc.svg)](https://travis-ci.org/Meoowww/Crirc)
