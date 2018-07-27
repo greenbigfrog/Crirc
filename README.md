@@ -2,6 +2,9 @@
 
 A crystal library to create irc client/bot/server.
 
+# This is an attempt at making Crirc fully Twitch compatible
+Be aware that this is WIP and in no excempt is finished or feature complete.
+
 ## Installation
 
 [![travis](https://travis-ci.org/Meoowww/Crirc.svg)](https://travis-ci.org/Meoowww/Crirc)
