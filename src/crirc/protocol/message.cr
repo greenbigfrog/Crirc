@@ -79,6 +79,12 @@ class Crirc::Protocol::Message
   # Timestamp the server received the message
   getter tmi_sent_ts : String?
 
+  # Duration of the timeout, in seconds. If omitted, the ban is permanent.
+  getter ban_duration : String?
+
+  # The moderator’s reason for the timeout or ban.
+  getter ban_reason : String?
+
   # Source of the message (ex: "0", "abc@xyz", ...)
   getter source : String
 
@@ -99,13 +105,14 @@ class Crirc::Protocol::Message
     io << "(bits=(?<bits>\\w*);)?"
     io << "(#{R_COLOR};)?"
     io << "(#{R_DISPLAY_NAME};)?"
+    io << "(emote-only=(?<emote_only>\\d+);)?"
     io << "(#{R_EMOTES};)?"
     io << "(message-id=(?<message_id>\\d+);)?"
     io << "(id=(?<message_id>[\\w-]*);)?"
     io << "(#{R_MOD};)?"
     io << "(room-id=(?<room_id>\\w*);)?"
     io << "(#{R_SUBSCRIBER};)?"
-    io << "(tmi-sent-ts=(?<ts>\\d*);)?"
+    io << "(#{R_TMI_SENT_TS};)?"
     io << "(thread-id=(?<thread_id>\\w*);)?"
     io << "(#{R_TURBO};)?"
     io << "(user-id=(?<user_id>\\d+);)?"
@@ -132,14 +139,21 @@ class Crirc::Protocol::Message
     io << "(followers-only=(?<followers_only>-*\\d*);)?"
     io << "(r9k=(?<r9k>\\d);)?"
     io << "(rituals=(?<rituals>\\w*);)?"
-    io << "(room-id=(?<room_id>\\d*);)?"
+    io << "(#{R_ROOM_ID};)?"
     io << "(slow=(?<slow>\\d*);)?"
     io << "(subs-only=(?<subs_only>\\d))?"
     io << " )?"
 
     # TODO USERNOTICE
     # TODO GLOBALUSERSTATE
-    # TODO CLEARCHAT
+
+    # CLEARCHAT
+    io << "(@"
+    io << "(ban-duration=(?<ban_duration>\\w*);)?"
+    io << "(ban-reason=(?<ban_reason>\\w*);)?"
+    io << "(#{R_TMI_SENT_TS};)?"
+    io << "(#{R_ROOM_ID};)?"
+    io << " )?"
 
     io << "#{R_SRC}?"
     io << "#{R_CMD}"
@@ -151,12 +165,14 @@ class Crirc::Protocol::Message
 
   R_COLOR        = "color=(?<color>#?[[:xdigit:]]*)"
   R_DISPLAY_NAME = "display-name=(?<display_name>\\w*)"
-  R_EMOTES       = "emotes=(?<emotes>\\w*)"
+  R_EMOTES       = "emotes=(?<emotes>\[\\w:-]*)"
   R_MOD          = "mod=(?<mod>\\d)"
   R_SUBSCRIBER   = "subscriber=(?<subscriber>\\d)"
   R_TURBO        = "turbo=(?<turbo>\\w*)"
   R_USER_TYPE    = "user-type=(?<user_type>\\w*)"
   R_BADGES       = "badges=(?<badges>[(\\w*\\/?\\d)|,]*)"
+  R_TMI_SENT_TS  = "tmi-sent-ts=(?<ts>\\d*)"
+  R_ROOM_ID      = "room-id=(?<room_id>\\d*)"
 
   R_SRC     = "(\\:(?<src>[^[:space:]]+) )"
   R_CMD     = "(?<cmd>[A-Z]+|\\d{3})"
@@ -166,20 +182,21 @@ class Crirc::Protocol::Message
 
   def initialize(@raw)
     m = raw.strip.match(REGEX)
-begin
-    raise ParsingError.new "The message (#{@raw}) is invalid" if m.nil?
-rescue
-pp REGEX
-	puts @raw
-exit
-end
-exit if m.nil?
+    begin
+      raise ParsingError.new "The message (#{@raw}) is invalid" if m.nil?
+    rescue
+      pp REGEX
+      puts @raw
+      exit
+    end
+    exit if m.nil?
 
     # PRIVMSG
     @badges = m["badges"]?
     @bits = m["bits"]?
     @color = m["color"]?
     @emotes = m["emotes"]?
+    @emote_only = m["emote_only"]? == 1 ? true : false
     @tmi_sent_ts = m["tmi_sent_ts"]?
     @subscriber = m["subscriber"]? == 1 ? true : false
     @mod = m["mod"]? == 1 ? true : false
@@ -213,6 +230,10 @@ exit if m.nil?
     @room_id = m["room_id"]?.try &.to_i32
     @slow = m["slow"]?.try &.to_i32
     @subs_only = m["subs_only"]? == 1 ? true : false
+
+    # CLEARCHAT
+    @ban_reason = m["ban_reason"]?
+    @ban_duration = m["ban_duration"]?
 
     @source = m["src"]? || "0"
     @command = m["cmd"] # ? || raise InvalidMessage.new("No command to parse in \"#{raw}\"")
