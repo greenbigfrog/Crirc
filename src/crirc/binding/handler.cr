@@ -47,7 +47,7 @@ module Crirc::Binding::Handler
   end
 
   def on(commands : Array(String), source : HookRule = nil, arguments : HookRule = nil, message : HookRule = nil,
-doc : {String, String}? = nil, &hook : Hook)
+         doc : {String, String}? = nil, &hook : Hook)
     commands.each do |command|
       on(command, source, arguments, message, doc, &hook)
     end
