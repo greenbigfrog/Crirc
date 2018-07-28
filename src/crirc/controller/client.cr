@@ -67,9 +67,17 @@ class Crirc::Controller::Client
       self.privmsg(target_object, data)
     when "WHISPER"
       target = msg.source.split('!')[0]
-      self.puts("PRIVMSG #jtv :/w #{target} #{data}")
+      self.whisper(target, data)
     else
       # Do nothing
     end
+  end
+
+  # Send a whisper to a given user
+  # ```
+  # bot.whisper("Monstercat", "This is a test")
+  # ```
+  def whisper(user : String, data : String)
+    self.puts("PRIVMSG #jtv :/w #{user} #{data}")
   end
 end
