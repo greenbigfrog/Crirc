@@ -17,6 +17,10 @@ Be aware that this is WIP and in no excempt is finished or feature complete.
      bot.puts("CAP REQ :twitch.tv/#{capability}")
    end
 
+## Differences to the normal Crirc
+- Support all Twitch Capabilities
+- Respond to multiple IRC commands using the same handler (currently only through overloads)
+
 ## Installation
 
 [![travis](https://travis-ci.org/Meoowww/Crirc.svg)](https://travis-ci.org/Meoowww/Crirc)
