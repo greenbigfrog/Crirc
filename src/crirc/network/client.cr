@@ -62,6 +62,11 @@ class Crirc::Network::Client
 
   # Send a message to the server
   def puts(data)
+    a = data.split(" ")
+    if a.first == "PRIVMSG"
+      pp "This should be ratelimited"
+      # https://dev.twitch.tv/docs/irc/guide/#command--message-limits
+    end
     socket.puts data.strip # TODO: add \r\n
   end
 
