@@ -46,6 +46,13 @@ module Crirc::Binding::Handler
     self
   end
 
+  def on(commands : Array(String), source : HookRule = nil, arguments : HookRule = nil, message : HookRule = nil,
+doc : {String, String}? = nil, &hook : Hook)
+    commands.each do |command|
+      on(command, source, arguments, message, doc, &hook)
+    end
+  end
+
   # Handle one `Message`
   # It goes through the registred hooks, select the one to trigger.
   # Then, it execute every hooks associated, and send as parameters the current message and the regex match if possible
