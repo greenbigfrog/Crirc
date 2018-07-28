@@ -43,7 +43,7 @@ class Crirc::Protocol::Message
   getter turbo : Bool?
 
   # The author's Twitch ID
-  getter user_id : UInt64?
+  getter user_id : Int64?
 
   # The user's type (:empty, :mod, :global_mod, :admin, :staff)
   getter user_type : UserType?
@@ -99,6 +99,7 @@ class Crirc::Protocol::Message
 
   REGEX = Regex.new(String.build do |io|
     io << "\\A"
+
     # PRIVMSG
     io << "(@"
     io << "(#{R_BADGES};)?"
@@ -145,6 +146,10 @@ class Crirc::Protocol::Message
     io << " )?"
 
     # TODO USERNOTICE
+    io << "(@"
+    io << "(msg-id=(?<msg_id>\\w*))?"
+    io << " )?"
+
     # TODO GLOBALUSERSTATE
 
     # CLEARCHAT
@@ -191,6 +196,8 @@ class Crirc::Protocol::Message
     end
     exit if m.nil?
 
+    raise Exception.new("Twitch gave a NOTICE: #{m["msg_id"]}") if m["msg_id"]?
+
     # PRIVMSG
     @badges = m["badges"]?
     @bits = m["bits"]?
@@ -203,7 +210,7 @@ class Crirc::Protocol::Message
     @message_id = m["message_id"]?
     @thread_id = m["thread_id"]?
     @turbo = m["turbo"]? == 1 ? true : false
-    @user_id = m["user_id"]?.try &.to_u64
+    @user_id = m["user_id"]?.try &.to_i64
     if m["user_type"]?
       @user_type = case m["user_type"]
                    when "mod"
