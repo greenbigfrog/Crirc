@@ -2,6 +2,7 @@ require "socket"
 require "openssl"
 require "../controller/client"
 require "./network"
+require "../rate_limiter"
 
 class Crirc::Network::Client
   include Network
@@ -21,15 +22,22 @@ class Crirc::Network::Client
   getter read_timeout : UInt16
   getter write_timeout : UInt16
   getter keepalive : Bool
+  getter limiter : RateLimiter(String)
 
   # default port is 6667 or 6697 if ssl is true
   def initialize(@nick : String, @ip, port = nil.as(UInt16?), @ssl = true, user = nil, realname = nil, @domain = nil, @pass = nil, @irc_server = nil,
-                 @read_timeout = 120_u16, @write_timeout = 5_u16, @keepalive = true)
+                 @read_timeout = 120_u16, @write_timeout = 5_u16, @keepalive = true, @limiter : RateLimiter = RateLimiter(String).new)
     @port = port.to_u16 || (ssl ? 6697_u16 : 6667_u16)
     @user = user || @nick
     @realname = realname || @nick
     @domain ||= "0"
     @irc_server ||= "*"
+
+    # TODO allow the different bot types here
+    # https://dev.twitch.tv/docs/irc/guide/#command--message-limits
+    @limiter.bucket(:whisper, 3_u32, 1.second)
+    # @limiter.bucket(:whisper2, 100_u32, 1.minute)
+    @limiter.bucket(:everything, 20_u32, 30.seconds)
   end
 
   def socket
@@ -62,10 +70,14 @@ class Crirc::Network::Client
 
   # Send a message to the server
   def puts(data)
-    a = data.split(" ")
-    if a.first == "PRIVMSG"
-      pp "This should be ratelimited"
-      # https://dev.twitch.tv/docs/irc/guide/#command--message-limits
+    split_data = data.split(" ")
+    if split_data.first == "PRIVMSG"
+      case a = split_data[1]
+      when "#jtv"
+        @limiter.rate_limit(:whisper, a)
+      else
+        @limiter.rate_limit(:everything, a)
+      end
     end
     socket.puts data.strip # TODO: add \r\n
   end
