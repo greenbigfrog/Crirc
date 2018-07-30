@@ -38,8 +38,8 @@ class Crirc::Network::Client
     @limiter.bucket(:whisper, 3_u32, 1.second, sub_buckets: [:whisper2])
     @limiter.bucket(:whisper2, 100_u32, 1.minute)
 
-    @limiter.bucket(:everything, 20_u32, 30.seconds, sub_buckets: [:everything2])
-    @limiter.bucket(:everything2, 2_u32, 1.seconds)
+    @limiter.bucket(:everything2, 20_u32, 30.seconds)
+    @limiter.bucket(:everything, 1_u32, 1.seconds, sub_buckets: [:everything2])
   end
 
   def socket
