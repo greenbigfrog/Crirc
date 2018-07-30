@@ -35,9 +35,11 @@ class Crirc::Network::Client
 
     # TODO allow the different bot types here
     # https://dev.twitch.tv/docs/irc/guide/#command--message-limits
-    @limiter.bucket(:whisper, 3_u32, 1.second)
-    # @limiter.bucket(:whisper2, 100_u32, 1.minute)
-    @limiter.bucket(:everything, 20_u32, 30.seconds)
+    @limiter.bucket(:whisper, 3_u32, 1.second, sub_buckets: [:whisper2])
+    @limiter.bucket(:whisper2, 100_u32, 1.minute)
+
+    @limiter.bucket(:everything, 20_u32, 30.seconds, sub_buckets: [:everything2])
+    @limiter.bucket(:everything2, 2_u32, 1.seconds)
   end
 
   def socket
@@ -74,9 +76,10 @@ class Crirc::Network::Client
     if split_data.first == "PRIVMSG"
       case a = split_data[1]
       when "#jtv"
-        @limiter.rate_limit(:whisper, a)
+        @limiter.rate_limit(:whisper, "#jtv")
       else
-        @limiter.rate_limit(:everything, a)
+        # Twitch Ratelimits are global
+        @limiter.rate_limit(:everything, "abc")
       end
     end
     socket.puts data.strip # TODO: add \r\n
