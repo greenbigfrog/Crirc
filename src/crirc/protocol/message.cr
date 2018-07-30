@@ -147,7 +147,8 @@ class Crirc::Protocol::Message
 
     # TODO USERNOTICE
     io << "(@"
-    io << "(msg-id=(?<msg_id>\\w*))?"
+    io << "(msg-id=(?<msg_id>\\w*);?)?"
+    io << "(target-user-id=(?<user_id>\\d+))?"
     io << " )?"
 
     # TODO GLOBALUSERSTATE
