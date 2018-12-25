@@ -38,7 +38,9 @@ class Crirc::Network::Client
     @limiter.bucket(:whisper, 3_u32, 1.second, sub_buckets: [:whisper2])
     @limiter.bucket(:whisper2, 100_u32, 1.minute)
 
-    @limiter.bucket(:everything2, 20_u32, 30.seconds)
+    # @limiter.bucket(:everything2, 20_u32, 30.seconds)
+    # @limiter.bucket(:everything, 1_u32, 1.seconds, sub_buckets: [:everything2])
+    @limiter.bucket(:everything2, 5_u32, 30.seconds)
     @limiter.bucket(:everything, 1_u32, 1.seconds, sub_buckets: [:everything2])
   end
 
@@ -74,7 +76,7 @@ class Crirc::Network::Client
   def puts(data)
     split_data = data.split(" ")
     if split_data.first == "PRIVMSG"
-      case a = split_data[1]
+      case split_data[1]
       when "#jtv"
         @limiter.rate_limit(:whisper, "#jtv")
       else

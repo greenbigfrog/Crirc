@@ -108,6 +108,7 @@ class Crirc::Protocol::Message
     io << "(#{R_DISPLAY_NAME};)?"
     io << "(emote-only=(?<emote_only>\\d+);)?"
     io << "(#{R_EMOTES};)?"
+    io << "(flags=(?<flags>\\w*)?;)?" # TODO what is this?
     io << "(message-id=(?<message_id>\\d+);)?"
     io << "(id=(?<message_id>[\\w-]*);)?"
     io << "(#{R_MOD};)?"
@@ -161,6 +162,7 @@ class Crirc::Protocol::Message
     io << "(#{R_ROOM_ID};)?"
     io << " )?"
 
+    # Regex that's the same across any kind of message
     io << "#{R_SRC}?"
     io << "#{R_CMD}"
     io << "#{R_ARG}?"
