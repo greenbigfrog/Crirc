@@ -103,18 +103,23 @@ class RateLimiter(T)
   end
 
   def rate_limit(name : Symbol, key : T)
-    pp name
     if bucket = @buckets[name]?
       bucket.mutex.synchronize do
+        time = Time.utc_now
+        ttr = bucket.rate_limited?(key)
+
         if sub_buckets = bucket.sub_buckets
           sub_buckets.each do |sub|
             self.rate_limit(sub, key)
           end
-        else
-          ttr = bucket.rate_limited?(key)
-          puts "Sleeping: #{ttr}"
-          sleep ttr if ttr.is_a?(Time::Span)
         end
+
+        return unless ttr.is_a?(Time::Span)
+        end_time = time + ttr
+        return if Time.utc_now > end_time
+
+        puts "Sleeping for #{name}: #{ttr}"
+        sleep ttr
       end
     end
   end

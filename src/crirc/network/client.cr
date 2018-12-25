@@ -40,8 +40,8 @@ class Crirc::Network::Client
 
     # @limiter.bucket(:everything2, 20_u32, 30.seconds)
     # @limiter.bucket(:everything, 1_u32, 1.seconds, sub_buckets: [:everything2])
-    @limiter.bucket(:everything2, 5_u32, 30.seconds)
-    @limiter.bucket(:everything, 1_u32, 1.seconds, sub_buckets: [:everything2])
+    @limiter.bucket(:everything2, 20_u32, 30.seconds)
+    @limiter.bucket(:everything, 1_u32, 2.seconds, sub_buckets: [:everything2])
   end
 
   def socket
