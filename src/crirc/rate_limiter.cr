@@ -2,7 +2,6 @@ class RateLimiter(T)
   # A `Bucket` collects rate limit queries and handle rate limiting logic
   class Bucket(K)
     getter mutex = Mutex.new
-    getter sub_bucket : Symbol?
 
     # A `Query` represents an accumulative record of rate limit requests
     class Query
@@ -22,7 +21,7 @@ class RateLimiter(T)
     # Creates a new bucket that enforces a `limit` within a `time_span`,
     # optionally enforcing a minimum `delay` between queries.
     def initialize(@limit : UInt32, @time_span : Time::Span,
-                   @delay : Time::Span = 0.seconds, @sub_bucket = nil)
+                   @delay : Time::Span = 0.seconds)
       @bucket = {} of K => Query
     end
 
@@ -82,8 +81,8 @@ class RateLimiter(T)
 
   # Creates a new bucket with `name` and specified properties.
   # See `Bucket#initialize`
-  def bucket(name : Symbol, limit : UInt32, time_span : Time::Span, delay : Time::Span = 0.seconds, sub_bucket : Symbol? = nil)
-    @buckets[name] = Bucket(T).new(limit, time_span, delay, sub_bucket)
+  def bucket(name : Symbol, limit : UInt32, time_span : Time::Span, delay : Time::Span = 0.seconds)
+    @buckets[name] = Bucket(T).new(limit, time_span, delay)
   end
 
   # Cleans all buckets.
@@ -104,16 +103,11 @@ class RateLimiter(T)
 
   def rate_limit(name : Symbol, key : T)
     if bucket = @buckets[name]?
-      bucket.mutex.synchronize do
-        # if sub_bucket = bucket.sub_bucket
-        #   self.rate_limit(sub_bucket, key)
-        # end
+      loop do
+        time_till_reset = bucket.rate_limited?(key)
+        return unless time_till_reset.is_a?(Time::Span)
 
-        ttr = bucket.rate_limited?(key)
-        return unless ttr.is_a?(Time::Span)
-
-        puts "Sleeping for #{name}: #{ttr}"
-        sleep ttr
+        sleep time_till_reset
       end
     end
   end
