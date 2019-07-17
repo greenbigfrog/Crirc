@@ -178,7 +178,7 @@ class Crirc::Protocol::Message
   R_SUBSCRIBER   = "subscriber=(?<subscriber>\\d)"
   R_TURBO        = "turbo=(?<turbo>\\w*)"
   R_USER_TYPE    = "user-type=(?<user_type>\\w*)"
-  R_BADGES       = "badges=(?<badges>[(\\w*\\/?\\d)|,]*)"
+  R_BADGES       = "badge-info=(?<badge_info>\\w*);)?(badges=(?<badges>[(\\w*\\/?\\d)|,]*)"
   R_TMI_SENT_TS  = "tmi-sent-ts=(?<ts>\\d*)"
   R_ROOM_ID      = "room-id=(?<room_id>\\d*)"
 
@@ -190,14 +190,8 @@ class Crirc::Protocol::Message
 
   def initialize(@raw)
     m = raw.strip.match(REGEX)
-    begin
-      raise ParsingError.new "The message (#{@raw}) is invalid" if m.nil?
-    rescue
-      pp REGEX
-      puts @raw
-      exit
-    end
-    exit if m.nil?
+
+    raise ParsingError.new("The message (#{@raw}) failed to get parsed with regex #{REGEX}") if m.nil?
 
     raise Exception.new("Twitch gave a NOTICE: #{m["msg_id"]}") if m["msg_id"]?
 
