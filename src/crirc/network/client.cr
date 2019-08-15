@@ -80,7 +80,6 @@ class Crirc::Network::Client
         @limiter.rate_limit(:everything, "abc")
       end
     end
-    p data
     socket.puts data.strip # TODO: add \r\n
   end
 
