@@ -22,6 +22,9 @@ class Crirc::Protocol::Message
   # Only sent for Bits messages
   getter bits : String?
 
+  # TODO determine purpose
+  getter client_nonce : String?
+
   # The display color of author as hex color value ("#9ACD32")
   getter color : String?
 
@@ -104,6 +107,7 @@ class Crirc::Protocol::Message
     io << "(@"
     io << "(#{R_BADGES};)?"
     io << "(bits=(?<bits>\\w*);)?"
+    io << "(client-nonce=(?<client_nonce>\\w*);)?"
     io << "(#{R_COLOR};)?"
     io << "(#{R_DISPLAY_NAME};)?"
     io << "(emote-only=(?<emote_only>\\d+);)?"
@@ -197,6 +201,7 @@ class Crirc::Protocol::Message
 
     # PRIVMSG
     @badges = m["badges"]?
+    @client_nonce = m["client_nonce"]?
     @bits = m["bits"]?
     @color = m["color"]?
     @emotes = m["emotes"]?
